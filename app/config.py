@@ -6,7 +6,7 @@ class Settings(BaseSettings):
         env_file="./.env"
     )
 
-    DB_HOST: int
+    DB_HOST: str
     DB_PORT: int = 5432
     DB_USER: str
     DB_PASSWORD: SecretStr
