@@ -1,5 +1,5 @@
 from celery import Celery
-from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
 
 import asyncio
 import aiohttp
@@ -23,8 +23,6 @@ celery_app.conf.update(
     timezone='UTC'
 )
 
-AsyncSessionFactory = async_sessionmaker(bind=engine)
-
 async def get_index(session: aiohttp.ClientSession, url: str, currency: str) -> Dict[str, Any]:
     params = {'index_name': currency}
     async with session.get(url=url, params=params) as response:
@@ -33,26 +31,32 @@ async def get_index(session: aiohttp.ClientSession, url: str, currency: str) -> 
         return {
             'ticker': currency,
             'price': response_json['result']['index_price'],
-            'fetched_at': datetime.fromtimestamp(response_json['usIn']/1_000_000, tz=timezone.utc)
+            'fetched_at': datetime.fromtimestamp(response_json['usIn']/1_000_000, tz=None)
         }
 
-async def save_index(data: Dict[str, Any]):
-    async with AsyncSessionFactory() as async_session:
+async def save_index(data: Dict[str, Any], async_session_factory):
+    async with async_session_factory() as async_session:
         repository = PriceHistoryRepository(async_session)
         service = PriceHistoryService(repository)   
 
         await service.create(**data)
 
 async def fetch_deribit_api():
-    async with aiohttp.ClientSession() as session:
-        results = await asyncio.gather(
-            get_index(session, DERIBIT_API_URL, 'btc_usd'),
-            get_index(session, DERIBIT_API_URL, 'eth_usd')
-        )
+    celery_async_engine = create_async_engine(settings.postgre_dsn)
+    celery_async_session_factory = async_sessionmaker(bind=celery_async_engine)
 
-        await asyncio.gather(
-            *[save_index(result) for result in results]
-        )
+    try:
+        async with aiohttp.ClientSession() as session:
+            results = await asyncio.gather(
+                get_index(session, DERIBIT_API_URL, 'btc_usd'),
+                get_index(session, DERIBIT_API_URL, 'eth_usd')
+            )
+
+            await asyncio.gather(
+                *[save_index(result, celery_async_session_factory) for result in results]
+            )
+    finally:
+        await celery_async_engine.dispose()
 
 @celery_app.task
 def fetch_index_price_task():
