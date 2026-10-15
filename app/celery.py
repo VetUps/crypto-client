@@ -1,14 +1,13 @@
 from celery import Celery
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 import asyncio
 import aiohttp
 
-from datetime import timedelta, datetime, timezone
+from datetime import timedelta, datetime
 from typing import Dict, Any
 
 from app.config import settings
-from app.database import engine
 from app.repositories.price_history import PriceHistoryRepository
 from app.services.price_history import PriceHistoryService
 
@@ -24,6 +23,7 @@ celery_app.conf.update(
 )
 
 async def get_index(session: aiohttp.ClientSession, url: str, currency: str) -> Dict[str, Any]:
+    """Получение инофрмации о криптовалюте из внешнего API"""
     params = {'index_name': currency}
     async with session.get(url=url, params=params) as response:
         response_json = await response.json()
@@ -34,14 +34,15 @@ async def get_index(session: aiohttp.ClientSession, url: str, currency: str) -> 
             'fetched_at': datetime.fromtimestamp(response_json['usIn']/1_000_000, tz=None)
         }
 
-async def save_index(data: Dict[str, Any], async_session_factory):
+async def save_index(data: Dict[str, Any], async_session_factory) -> None:
+    """Сохранение информации о криптовалюте"""
     async with async_session_factory() as async_session:
         repository = PriceHistoryRepository(async_session)
         service = PriceHistoryService(repository)   
 
         await service.create(**data)
 
-async def fetch_deribit_api():
+async def fetch_deribit_api() -> None:
     celery_async_engine = create_async_engine(settings.postgre_dsn)
     celery_async_session_factory = async_sessionmaker(bind=celery_async_engine)
 

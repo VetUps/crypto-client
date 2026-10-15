@@ -17,6 +17,7 @@ class PriceHistoryRepository:
         self.session = session
 
     async def get_all(self, ticker: str) -> List[price_history.PriceHistoryBase]:
+        """Возвращает всю информацию о криптовалюте"""
         query = (
             select(models.PriceHistory)
             .where(models.PriceHistory.ticker == ticker)
@@ -26,6 +27,7 @@ class PriceHistoryRepository:
         return price_history_list_adapter.validate_python(result)
 
     async def get_last(self, ticker: str) -> price_history.PriceHistoryBase:
+        """Возвращает последнюю запись о криптовалюте"""
         query = (
             select(models.PriceHistory)
             .where(models.PriceHistory.ticker == ticker)
@@ -38,6 +40,7 @@ class PriceHistoryRepository:
 
     async def get_by_date_filtered(self, ticker: str, datetime_from: datetime, datetime_to: datetime) \
         -> List[price_history.PriceHistoryBase]:
+        """Возвращает список записей о криптовалюте, отфильтрованный по дате"""
         query = (
             select(models.PriceHistory)
             .where(models.PriceHistory.ticker == ticker, 
@@ -48,6 +51,7 @@ class PriceHistoryRepository:
         return price_history_list_adapter.validate_python(result)
 
     async def is_exists(self, ticker: str) -> bool:
+        """Проверка наличия криптовалюты по тикеру"""
         query = select(
             exists(
                 select(models.PriceHistory)
@@ -59,6 +63,7 @@ class PriceHistoryRepository:
         return result
 
     async def create(self, ticker: str, price: Decimal, fetched_at: datetime) -> None:
+        """Создаёт запись о криптовалюте"""
         new_history = models.PriceHistory(
             ticker=ticker, 
             price=price, 

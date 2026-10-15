@@ -5,8 +5,8 @@ from app.repositories.price_history import PriceHistoryRepository
 from app.services.price_history import PriceHistoryService
 from app.database import get_db
 
-def get_price_history_repository(session: AsyncSession = Depends(get_db)):
+def get_price_history_repository(session: AsyncSession = Depends(get_db)) -> PriceHistoryRepository:
     return PriceHistoryRepository(session)
 
-def get_price_history_service(repository: PriceHistoryRepository = Depends(get_price_history_repository)):
+def get_price_history_service(repository: PriceHistoryRepository = Depends(get_price_history_repository)) -> PriceHistoryService:
     return PriceHistoryService(repository)
