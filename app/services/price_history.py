@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from app.repositories.price_history import PriceHistoryRepository
 from app.schemas.price_history import PriceHistoryBase
 
-class PriceHistoryRepositroy:
+class PriceHistoryService:
     def __init__(self, repository: PriceHistoryRepository) -> None:
         self.repository = repository
 
