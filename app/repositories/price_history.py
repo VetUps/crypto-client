@@ -22,7 +22,7 @@ class PriceHistoryRepository:
             .where(models.PriceHistory.ticker == ticker)
         )
 
-        result = (await self.session.execute(query)).scalars()
+        result = (await self.session.execute(query)).scalars().all()
         return price_history_list_adapter.validate_python(result)
 
     async def get_last(self, ticker: str) -> price_history.PriceHistoryBase:
@@ -44,7 +44,7 @@ class PriceHistoryRepository:
                    models.PriceHistory.fetched_at.between(datetime_from, datetime_to))
         )
 
-        result = (await self.session.execute(query)).scalar_one_or_none()
+        result = (await self.session.execute(query)).scalars().all()
         return price_history_list_adapter.validate_python(result)
 
     async def is_exists(self, ticker: str) -> bool:
