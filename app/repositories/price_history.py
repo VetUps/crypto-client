@@ -24,7 +24,7 @@ class PriceHistoryRepository:
         result = (await self.session.execute(query)).scalars()
         return price_history_list_adapter.validate_python(result)
 
-    async def get_last(self, ticker: str) -> price_history.PriceHistoryBase | None:
+    async def get_last(self, ticker: str) -> price_history.PriceHistoryBase:
         query = (
             select(models.PriceHistory)
             .where(models.PriceHistory.ticker == ticker)
@@ -32,8 +32,8 @@ class PriceHistoryRepository:
             .limit(1)
         )
 
-        result = (await self.session.execute(query)).scalar_one_or_none()
-        return price_history_adapter.validate_python(result) if result is not None else None
+        result = (await self.session.execute(query)).scalar_one()
+        return price_history_adapter.validate_python(result)
 
     async def get_by_date_filtered(self, ticker: str, datetime_from: datetime, datetime_to: datetime) \
         -> List[price_history.PriceHistoryBase]:
