@@ -45,4 +45,15 @@ class PriceHistoryRepository:
 
         result = (await self.session.execute(query)).scalar_one_or_none()
         return price_history_list_adapter.validate_python(result)
+
+    async def is_exists(self, ticker: str) -> bool:
+        query = select(
+            exists(
+                select(models.PriceHistory)
+                .where(models.PriceHistory.ticker == ticker)
+            )
+        )
+
+        result = (await self.session.execute(query)).scalar_one()
+        return result
     

@@ -11,6 +11,9 @@ class PriceHistory(Base):
     __tablename__ = 'price_history'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    ticker: Mapped[str]
+    ticker: Mapped[str] = mapped_column(
+        index=True, 
+        index_kwargs={"postgresql_using": "hash"}
+    )
     price: Mapped[Decimal] = mapped_column(Numeric(scale=10, precision=2))
     fetched_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True))
