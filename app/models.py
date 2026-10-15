@@ -15,5 +15,5 @@ class PriceHistory(Base):
         index=True, 
         index_kwargs={"postgresql_using": "hash"}
     )
-    price: Mapped[Decimal] = mapped_column(Numeric(scale=10, precision=2))
+    price: Mapped[Decimal] = mapped_column(Numeric(scale=2, precision=10))
     fetched_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True))
