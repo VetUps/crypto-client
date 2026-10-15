@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, exists
 
 from pydantic import TypeAdapter
 from typing import List
@@ -24,7 +24,7 @@ class PriceHistoryRepository:
         result = (await self.session.execute(query)).scalars()
         return price_history_list_adapter.validate_python(result)
 
-    async def get_last(self, ticker: str) -> price_history.PriceHistoryBase:
+    async def get_last(self, ticker: str) -> price_history.PriceHistoryBase | None:
         query = (
             select(models.PriceHistory)
             .where(models.PriceHistory.ticker == ticker)
@@ -32,8 +32,8 @@ class PriceHistoryRepository:
             .limit(1)
         )
 
-        result = (await self.session.execute(query)).scalar_one()
-        return price_history_adapter.validate_python(result)
+        result = (await self.session.execute(query)).scalar_one_or_none()
+        return price_history_adapter.validate_python(result) if result is not None else None
 
     async def get_by_date_filtered(self, ticker: str, datetime_from: datetime, datetime_to: datetime) \
         -> List[price_history.PriceHistoryBase]:
@@ -43,6 +43,6 @@ class PriceHistoryRepository:
                    models.PriceHistory.fetched_at.between(datetime_from, datetime_to))
         )
 
-        result = (await self.session.execute(query)).scalars()
+        result = (await self.session.execute(query)).scalar_one_or_none()
         return price_history_list_adapter.validate_python(result)
     
