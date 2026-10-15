@@ -4,6 +4,7 @@ from sqlalchemy import select, exists
 from pydantic import TypeAdapter
 from typing import List
 from datetime import datetime
+from decimal import Decimal
 
 from app import models
 from app.schemas import price_history
@@ -56,4 +57,14 @@ class PriceHistoryRepository:
 
         result = (await self.session.execute(query)).scalar_one()
         return result
+
+    async def create(self, ticker: str, price: Decimal, fetched_at: datetime) -> None:
+        new_history = models.PriceHistory(
+            ticker=ticker, 
+            price=price, 
+            fetched_at=fetched_at
+        )
+
+        self.session.add(new_history)
+        await self.session.commit()
     

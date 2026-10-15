@@ -2,6 +2,7 @@ from fastapi import HTTPException, status
 
 from typing import List
 from datetime import datetime, timedelta
+from decimal import Decimal
 
 from app.repositories.price_history import PriceHistoryRepository
 from app.schemas.price_history import PriceHistoryBase
@@ -41,9 +42,11 @@ class PriceHistoryService:
     
         return result
 
+    async def create(self, ticker: str, price: Decimal, fetched_at: datetime):
+        await self.repository.create(ticker, price, fetched_at)
+
     # можно переписать как декоратор
     async def _ticker_existing_check(self, ticker: str) -> None:
         is_ticker_exists = await self.repository.is_exists(ticker)
         if not is_ticker_exists:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Ticker {ticker} was not found')
-        
