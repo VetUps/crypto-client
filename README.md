@@ -30,7 +30,7 @@ Postgres — единственное источник правды, его не
 ## 2. Быстрый старт
 
 ```bash
-git clone <https://gitlab.com/personal-group6385042/crypto-client.git> && cd app
+git clone https://gitlab.com/personal-group6385042/crypto-client.git && cd app
 cp .env.example .env.docker
 docker compose up --build
 docker compose ps           # чекаем, что контейнеры запущены
